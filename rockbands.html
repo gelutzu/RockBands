@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Favorite Rock Bands</title>
+  <style type="text/css">
+    button,
+    div,
+    form,
+    input {
+      margin: 10px;
+    }
+    body  {
+      background-image: url(rock.jpg);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>Rock Bands</h1>
+
+    <!-- Rendered Buttons will get Dumped Here  -->
+    <div id="buttons-view"></div>
+
+    <form id="band-form">
+    <label for="band-input">Add a Rock Band</label>
+    <input type="text" id="band-input"><br>
+
+    <!--Button triggers new band to be added -->
+    <input id="add-band" type="submit" value="Add a Band that rocks!">
+    </form>
+
+    <div id="gifs-appear-here"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript">
+        // Initial array of bands
+      var bands = ["Pink Floyd", "Led Zeppelin", "The Beatles", "Queen", "Metallica","AC/DC", 
+                "Rolling Stones", "Nirvana", "Guns N Roses", "The Who"];
+
+        // Generic function for capturing the band name from the data-name attribute
+      function alertBandName() {
+
+        var bandName = $(this).attr("data-name");
+        var queryURL = "https://api.giphy.com/v1/gifs/search?q="+bandName+"&api_key=afnMQqm0xVDwVJ4vfKbFSZWUm5SlQSJm&limit=10";
+        
+
+        $.ajax({
+          url: queryURL,
+          method: 'GET'
+        })
+        .done(function(response) {
+          console.log(response.data[0].images.original.url);
+          console.log(response.data[0].images.original_still.url);
+    
+          for (var i=0;i<response.data.length;i++) {
+
+          var gifDiv = $("<div class='item'>");
+          var rating =  response.data[i].rating;   
+          var p = $("<p>").text("Rating: " + rating);
+          var image = $("<img>");
+          image.attr("src", response.data[i].images.original_still.url);
+          image.attr("data-still", response.data[i].images.original_still.url);
+          image.attr("data-animate", response.data[i].images.original.url);
+          image.attr("data-state", "still");
+          image.addClass("gif");
+
+          gifDiv.append(image);
+          gifDiv.append(p);
+          $("#gifs-appear-here").prepend(gifDiv);
+          }
+        });
+      }
+
+        // function for displaying band data
+      function renderButtons() {
+
+        // empty buttons-view div
+        $("#buttons-view").empty();
+
+        // looping through the array of bands
+        for (var i = 0; i < bands.length; i++) {
+
+        // dynamicaly generating buttons for each band in the array
+        var a = $("<button>");
+        // adding a  band class to our button
+        a.addClass("band");
+        // adding a data-name attribute
+        a.attr("data-name", bands[i]);
+        // providing text for the button 
+        a.text(bands[i]);
+        // adding the button to the HTML
+        $("#buttons-view").append(a);
+        }
+      }
+
+      // This function handles events where one button is clicked
+      $("#add-band").on("click", function(event) {
+        // Preventing the buttons default behavior when clicked (which is submitting a form)
+        event.preventDefault();
+        // This line grabs the input from the textbox
+        var band = $("#band-input").val().trim();
+        // Adding the band from the textbox to our array
+        bands.push(band);
+        // Calling renderButtons which handles the processing of our band array
+        renderButtons();
+      });
+
+      // Function for displaying the movie info
+      // We're adding a click event listener to all elements with the class ".band"
+      // We're adding the event listener to the document because it will work for dynamically generated elements
+      // $(".bands").on("click") will only add listeners to elements that are on the page at that time
+      $(document).on("click", ".band", alertBandName);
+
+        // Calling the renderButtons function to display the intial buttons
+        renderButtons();
+
+      $(document).on("click", ".gif", function() {
+        // The attr jQuery method allows us to get or set the value of any attribute on our HTML element
+        var state = $(this).attr("data-state");
+        // If the clicked image's state is still, update its src attribute to what its data-animate value is.
+        // Then, set the image's data-state to animate
+        // Else set src to the data-still value
+        if (state === "still") {
+          $(this).attr("src", $(this).attr("data-animate"));
+          $(this).attr("data-state", "animate");
+        } else {
+          $(this).attr("src", $(this).attr("data-still"));
+          $(this).attr("data-state", "still");
+        }
+      });
+      
+    </script>
+  </div>
+</body> 
+
+</html>
